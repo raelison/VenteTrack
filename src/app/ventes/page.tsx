@@ -1,4 +1,4 @@
-import { fetchProducts, fetchClients, fetchSales } from "@/lib/api";
+import { fetchProducts, fetchClients, fetchSales, deleteSale } from "@/lib/api";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { 
@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { SaleForm } from "@/components/sales/sale-form";
 import { ShoppingCart, History } from "lucide-react";
 import { SaleDetail } from "@/lib/types";
+import { DeleteButton } from "@/components/common/delete-button";
 
 export default async function SalesPage() {
   const [products, clients, sales] = await Promise.all([
@@ -21,7 +22,7 @@ export default async function SalesPage() {
     fetchSales(),
   ]);
 
-  // Enrich sales data with names for display
+  // Enrich sales data for display
   const enrichedSales: SaleDetail[] = sales.map(sale => ({
     ...sale,
     client_name: clients.find(c => c.id === sale.client)?.nom || `Client #${sale.client}`,
@@ -59,25 +60,31 @@ export default async function SalesPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Vente ID</TableHead>
                         <TableHead>Client</TableHead>
                         <TableHead>Produit</TableHead>
                         <TableHead className="text-right">Quantité</TableHead>
+                        <TableHead className="text-right">Action</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {enrichedSales.slice().reverse().map((sale) => (
                         <TableRow key={sale.id}>
-                          <TableCell className="font-mono text-xs text-muted-foreground">#{sale.id}</TableCell>
                           <TableCell className="font-medium">{sale.client_name}</TableCell>
                           <TableCell>{sale.product_design}</TableCell>
                           <TableCell className="text-right font-bold text-accent">{sale.qtesortie}</TableCell>
+                          <TableCell className="text-right">
+                            <DeleteButton 
+                              id={sale.id} 
+                              onDelete={deleteSale} 
+                              title={`la vente #${sale.id}`} 
+                            />
+                          </TableCell>
                         </TableRow>
                       ))}
                       {enrichedSales.length === 0 && (
                         <TableRow>
                           <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
-                            Aucune vente enregistrée pour le moment.
+                            Aucune vente enregistrée.
                           </TableCell>
                         </TableRow>
                       )}

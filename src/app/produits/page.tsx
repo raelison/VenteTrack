@@ -1,4 +1,4 @@
-import { fetchProducts } from "@/lib/api";
+import { fetchProducts, deleteProduct } from "@/lib/api";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { 
@@ -12,6 +12,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Package } from "lucide-react";
+import { ProductDialog } from "@/components/products/product-dialog";
+import { DeleteButton } from "@/components/common/delete-button";
 
 export default async function ProductsPage() {
   const products = await fetchProducts();
@@ -26,7 +28,7 @@ export default async function ProductsPage() {
               <h1 className="text-3xl font-bold text-primary font-headline">Catalogue Produits</h1>
               <p className="text-muted-foreground">Gérez votre inventaire et suivez les niveaux de stock.</p>
             </div>
-            <Package className="h-8 w-8 text-primary/20" />
+            <ProductDialog />
           </div>
 
           <Card>
@@ -42,6 +44,7 @@ export default async function ProductsPage() {
                     <TableHead>Désignation</TableHead>
                     <TableHead className="text-right">Stock</TableHead>
                     <TableHead className="text-right">Statut</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -52,18 +55,24 @@ export default async function ProductsPage() {
                       <TableCell className="text-right font-bold">{product.stock}</TableCell>
                       <TableCell className="text-right">
                         {product.stock > 20 ? (
-                          <Badge variant="secondary" className="bg-accent/10 text-accent hover:bg-accent/20 border-none">Optimal</Badge>
+                          <Badge variant="secondary" className="bg-accent/10 text-accent border-none">Optimal</Badge>
                         ) : product.stock > 5 ? (
                           <Badge variant="outline" className="border-primary/20 text-primary">Modéré</Badge>
                         ) : (
-                          <Badge variant="destructive" className="animate-pulse">Critique</Badge>
+                          <Badge variant="destructive">Critique</Badge>
                         )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <ProductDialog product={product} />
+                          <DeleteButton id={product.id} onDelete={deleteProduct} title={product.design} />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
                   {products.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4} className="h-24 text-center">
+                      <TableCell colSpan={5} className="h-24 text-center">
                         Aucun produit trouvé.
                       </TableCell>
                     </TableRow>

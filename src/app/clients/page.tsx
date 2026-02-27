@@ -1,4 +1,4 @@
-import { fetchClients } from "@/lib/api";
+import { fetchClients, deleteClient } from "@/lib/api";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { 
@@ -10,8 +10,9 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Users, Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Users } from "lucide-react";
+import { ClientDialog } from "@/components/clients/client-dialog";
+import { DeleteButton } from "@/components/common/delete-button";
 
 export default async function ClientsPage() {
   const clients = await fetchClients();
@@ -26,23 +27,13 @@ export default async function ClientsPage() {
               <h1 className="text-3xl font-bold text-primary font-headline">Répertoire Clients</h1>
               <p className="text-muted-foreground">Consultez et gérez votre base de données clients.</p>
             </div>
-            <Users className="h-8 w-8 text-primary/20" />
+            <ClientDialog />
           </div>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0">
-              <div className="space-y-1">
-                <CardTitle>Clients Enregistrés</CardTitle>
-                <CardDescription>Liste de tous les clients ayant un compte actif.</CardDescription>
-              </div>
-              <div className="relative w-72">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Rechercher un client..."
-                  className="pl-8 bg-background border-muted"
-                />
-              </div>
+            <CardHeader>
+              <CardTitle>Clients Enregistrés</CardTitle>
+              <CardDescription>Liste de tous les clients ayant un compte actif.</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
@@ -50,7 +41,7 @@ export default async function ClientsPage() {
                   <TableRow>
                     <TableHead className="w-[100px]">ID</TableHead>
                     <TableHead>Nom complet</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -59,7 +50,10 @@ export default async function ClientsPage() {
                       <TableCell className="font-mono text-xs text-muted-foreground">#{client.id}</TableCell>
                       <TableCell className="font-semibold">{client.nom}</TableCell>
                       <TableCell className="text-right">
-                        <button className="text-primary hover:underline text-sm font-medium">Détails</button>
+                        <div className="flex justify-end gap-2">
+                          <ClientDialog client={client} />
+                          <DeleteButton id={client.id} onDelete={deleteClient} title={client.nom} />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

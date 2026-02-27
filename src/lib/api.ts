@@ -2,6 +2,7 @@ import { Product, Client, Sale } from './types';
 
 const BASE_URL = 'http://127.0.0.1:8000';
 
+// --- PRODUITS ---
 export async function fetchProducts(): Promise<Product[]> {
   try {
     const res = await fetch(`${BASE_URL}/produits/`, { cache: 'no-store' });
@@ -9,7 +10,6 @@ export async function fetchProducts(): Promise<Product[]> {
     return await res.json();
   } catch (e) {
     console.error('Failed to fetch products', e);
-    // Returning dummy data for preview if backend is not running
     return [
       { id: 1, design: 'Laptop Pro', stock: 15 },
       { id: 2, design: 'Smartphone Elite', stock: 42 },
@@ -18,6 +18,42 @@ export async function fetchProducts(): Promise<Product[]> {
   }
 }
 
+export async function createProduct(data: Omit<Product, 'id'>): Promise<Product | null> {
+  try {
+    const res = await fetch(`${BASE_URL}/produits/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return res.ok ? await res.json() : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+export async function updateProduct(id: number, data: Partial<Product>): Promise<boolean> {
+  try {
+    const res = await fetch(`${BASE_URL}/produits/${id}/`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return res.ok;
+  } catch (e) {
+    return false;
+  }
+}
+
+export async function deleteProduct(id: number): Promise<boolean> {
+  try {
+    const res = await fetch(`${BASE_URL}/produits/${id}/`, { method: 'DELETE' });
+    return res.ok;
+  } catch (e) {
+    return false;
+  }
+}
+
+// --- CLIENTS ---
 export async function fetchClients(): Promise<Client[]> {
   try {
     const res = await fetch(`${BASE_URL}/clients/`, { cache: 'no-store' });
@@ -28,11 +64,46 @@ export async function fetchClients(): Promise<Client[]> {
     return [
       { id: 1, nom: 'Jean Dupont' },
       { id: 2, nom: 'Marie Curie' },
-      { id: 3, nom: 'Alice Martin' },
     ];
   }
 }
 
+export async function createClient(data: Omit<Client, 'id'>): Promise<Client | null> {
+  try {
+    const res = await fetch(`${BASE_URL}/clients/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return res.ok ? await res.json() : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+export async function updateClient(id: number, data: Partial<Client>): Promise<boolean> {
+  try {
+    const res = await fetch(`${BASE_URL}/clients/${id}/`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return res.ok;
+  } catch (e) {
+    return false;
+  }
+}
+
+export async function deleteClient(id: number): Promise<boolean> {
+  try {
+    const res = await fetch(`${BASE_URL}/clients/${id}/`, { method: 'DELETE' });
+    return res.ok;
+  } catch (e) {
+    return false;
+  }
+}
+
+// --- VENTES ---
 export async function fetchSales(): Promise<Sale[]> {
   try {
     const res = await fetch(`${BASE_URL}/ventes/`, { cache: 'no-store' });
@@ -40,10 +111,7 @@ export async function fetchSales(): Promise<Sale[]> {
     return await res.json();
   } catch (e) {
     console.error('Failed to fetch sales', e);
-    return [
-      { id: 1, qtesortie: 2, client: 1, produit: 1 },
-      { id: 2, qtesortie: 1, client: 2, produit: 2 },
-    ];
+    return [];
   }
 }
 
@@ -54,24 +122,35 @@ export async function createSale(data: Omit<Sale, 'id'>): Promise<Sale | null> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error('Failed to create sale');
-    return await res.json();
+    return res.ok ? await res.json() : null;
   } catch (e) {
-    console.error(e);
     return null;
   }
 }
 
-export async function updateProductStock(id: number, newStock: number): Promise<boolean> {
+export async function updateSale(id: number, data: Partial<Sale>): Promise<boolean> {
   try {
-    const res = await fetch(`${BASE_URL}/produits/${id}/`, {
+    const res = await fetch(`${BASE_URL}/ventes/${id}/`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ stock: newStock }),
+      body: JSON.stringify(data),
     });
     return res.ok;
   } catch (e) {
-    console.error('Failed to update stock', e);
     return false;
   }
+}
+
+export async function deleteSale(id: number): Promise<boolean> {
+  try {
+    const res = await fetch(`${BASE_URL}/ventes/${id}/`, { method: 'DELETE' });
+    return res.ok;
+  } catch (e) {
+    return false;
+  }
+}
+
+// Legacy helper for compatibility
+export async function updateProductStock(id: number, newStock: number): Promise<boolean> {
+  return updateProduct(id, { stock: newStock });
 }
