@@ -1,4 +1,8 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { fetchProducts, fetchClients, fetchSales, deleteSale } from "@/lib/api";
+import { Product, Client, Sale, SaleDetail } from "@/lib/types";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { 
@@ -11,18 +15,32 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { SaleForm } from "@/components/sales/sale-form";
-import { ShoppingCart, History } from "lucide-react";
-import { SaleDetail } from "@/lib/types";
+import { ShoppingCart, History, Loader2 } from "lucide-react";
 import { DeleteButton } from "@/components/common/delete-button";
 
-export default async function SalesPage() {
-  const [products, clients, sales] = await Promise.all([
-    fetchProducts(),
-    fetchClients(),
-    fetchSales(),
-  ]);
+export default function SalesPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [sales, setSales] = useState<Sale[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Enrich sales data for display
+  const loadData = async () => {
+    setLoading(true);
+    const [p, c, s] = await Promise.all([
+      fetchProducts(),
+      fetchClients(),
+      fetchSales(),
+    ]);
+    setProducts(p);
+    setClients(c);
+    setSales(s);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
   const enrichedSales: SaleDetail[] = sales.map(sale => ({
     ...sale,
     client_name: clients.find(c => c.id === sale.client)?.nom || `Client #${sale.client}`,
@@ -42,58 +60,65 @@ export default async function SalesPage() {
             <ShoppingCart className="h-8 w-8 text-primary/20" />
           </div>
 
-          <div className="grid gap-8 lg:grid-cols-3">
-            <div className="lg:col-span-1">
-              <SaleForm products={products} clients={clients} />
+          {loading ? (
+            <div className="flex justify-center p-12">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
             </div>
+          ) : (
+            <div className="grid gap-8 lg:grid-cols-3">
+              <div className="lg:col-span-1">
+                <SaleForm products={products} clients={clients} onSuccess={loadData} />
+              </div>
 
-            <div className="lg:col-span-2">
-              <Card>
-                <CardHeader className="flex flex-row items-center gap-2">
-                  <History className="h-5 w-5 text-primary" />
-                  <div>
-                    <CardTitle>Historique des Transactions</CardTitle>
-                    <CardDescription>Liste chronologique des ventes effectuées.</CardDescription>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Client</TableHead>
-                        <TableHead>Produit</TableHead>
-                        <TableHead className="text-right">Quantité</TableHead>
-                        <TableHead className="text-right">Action</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {enrichedSales.slice().reverse().map((sale) => (
-                        <TableRow key={sale.id}>
-                          <TableCell className="font-medium">{sale.client_name}</TableCell>
-                          <TableCell>{sale.product_design}</TableCell>
-                          <TableCell className="text-right font-bold text-accent">{sale.qtesortie}</TableCell>
-                          <TableCell className="text-right">
-                            <DeleteButton 
-                              id={sale.id} 
-                              onDelete={deleteSale} 
-                              title={`la vente #${sale.id}`} 
-                            />
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {enrichedSales.length === 0 && (
+              <div className="lg:col-span-2">
+                <Card>
+                  <CardHeader className="flex flex-row items-center gap-2">
+                    <History className="h-5 w-5 text-primary" />
+                    <div>
+                      <CardTitle>Historique des Transactions</CardTitle>
+                      <CardDescription>Liste chronologique des ventes effectuées.</CardDescription>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
                         <TableRow>
-                          <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
-                            Aucune vente enregistrée.
-                          </TableCell>
+                          <TableHead>Client</TableHead>
+                          <TableHead>Produit</TableHead>
+                          <TableHead className="text-right">Quantité</TableHead>
+                          <TableHead className="text-right">Action</TableHead>
                         </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
+                      </TableHeader>
+                      <TableBody>
+                        {enrichedSales.slice().reverse().map((sale) => (
+                          <TableRow key={sale.id}>
+                            <TableCell className="font-medium">{sale.client_name}</TableCell>
+                            <TableCell>{sale.product_design}</TableCell>
+                            <TableCell className="text-right font-bold text-accent">{sale.qtesortie}</TableCell>
+                            <TableCell className="text-right">
+                              <DeleteButton 
+                                id={sale.id} 
+                                onDelete={deleteSale} 
+                                title={`la vente #${sale.id}`} 
+                                onSuccess={loadData}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        {enrichedSales.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                              Aucune vente enregistrée.
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </SidebarInset>
     </SidebarProvider>

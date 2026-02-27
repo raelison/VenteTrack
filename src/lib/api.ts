@@ -9,7 +9,7 @@ export async function fetchProducts(): Promise<Product[]> {
     if (!res.ok) return [];
     return await res.json();
   } catch (e) {
-    console.error('Failed to fetch products', e);
+    // Return mock data for development if API is unreachable
     return [
       { id: 1, design: 'Laptop Pro', stock: 15 },
       { id: 2, design: 'Smartphone Elite', stock: 42 },
@@ -60,7 +60,6 @@ export async function fetchClients(): Promise<Client[]> {
     if (!res.ok) return [];
     return await res.json();
   } catch (e) {
-    console.error('Failed to fetch clients', e);
     return [
       { id: 1, nom: 'Jean Dupont' },
       { id: 2, nom: 'Marie Curie' },
@@ -110,7 +109,6 @@ export async function fetchSales(): Promise<Sale[]> {
     if (!res.ok) return [];
     return await res.json();
   } catch (e) {
-    console.error('Failed to fetch sales', e);
     return [];
   }
 }
@@ -150,7 +148,6 @@ export async function deleteSale(id: number): Promise<boolean> {
   }
 }
 
-// Legacy helper for compatibility
 export async function updateProductStock(id: number, newStock: number): Promise<boolean> {
   return updateProduct(id, { stock: newStock });
 }

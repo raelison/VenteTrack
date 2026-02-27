@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Client } from "@/lib/types";
 import { createClient, updateClient } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -20,14 +19,14 @@ import { Plus, Edit2, Loader2 } from "lucide-react";
 
 interface ClientDialogProps {
   client?: Client;
+  onSuccess?: () => void;
 }
 
-export function ClientDialog({ client }: ClientDialogProps) {
+export function ClientDialog({ client, onSuccess }: ClientDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [nom, setNom] = useState(client?.nom || "");
   const { toast } = useToast();
-  const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -44,7 +43,7 @@ export function ClientDialog({ client }: ClientDialogProps) {
         description: `${nom} a été enregistré avec succès.`,
       });
       setOpen(false);
-      router.refresh();
+      if (onSuccess) onSuccess();
     } else {
       toast({
         title: "Erreur",

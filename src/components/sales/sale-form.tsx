@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Product, Client } from "@/lib/types";
 import { createSale, updateProductStock } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -22,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -39,12 +38,12 @@ const saleSchema = z.object({
 interface SaleFormProps {
   products: Product[];
   clients: Client[];
+  onSuccess?: () => void;
 }
 
-export function SaleForm({ products, clients }: SaleFormProps) {
+export function SaleForm({ products, clients, onSuccess }: SaleFormProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const router = useRouter();
 
   const form = useForm<z.infer<typeof saleSchema>>({
     resolver: zodResolver(saleSchema),
@@ -78,7 +77,6 @@ export function SaleForm({ products, clients }: SaleFormProps) {
     });
 
     if (saleResult) {
-      // Prompt logic: "automatically send an update request to decrease the product's stock level"
       if (product) {
         await updateProductStock(prodId, product.stock - qte);
       }
@@ -88,7 +86,7 @@ export function SaleForm({ products, clients }: SaleFormProps) {
         description: "La transaction a été complétée et le stock mis à jour.",
       });
       form.reset();
-      router.refresh();
+      if (onSuccess) onSuccess();
     } else {
       toast({
         title: "Erreur",
@@ -116,7 +114,7 @@ export function SaleForm({ products, clients }: SaleFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Client</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionnez un client" />
@@ -139,7 +137,7 @@ export function SaleForm({ products, clients }: SaleFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Produit</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionnez un produit" />

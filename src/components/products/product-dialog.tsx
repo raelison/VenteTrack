@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Product } from "@/lib/types";
 import { createProduct, updateProduct } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -20,15 +19,15 @@ import { Plus, Edit2, Loader2 } from "lucide-react";
 
 interface ProductDialogProps {
   product?: Product;
+  onSuccess?: () => void;
 }
 
-export function ProductDialog({ product }: ProductDialogProps) {
+export function ProductDialog({ product, onSuccess }: ProductDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [design, setDesign] = useState(product?.design || "");
   const [stock, setStock] = useState(product?.stock?.toString() || "0");
   const { toast } = useToast();
-  const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -45,7 +44,7 @@ export function ProductDialog({ product }: ProductDialogProps) {
         description: `${design} a été enregistré avec succès.`,
       });
       setOpen(false);
-      router.refresh();
+      if (onSuccess) onSuccess();
     } else {
       toast({
         title: "Erreur",

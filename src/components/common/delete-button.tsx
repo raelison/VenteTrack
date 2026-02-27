@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,19 +20,19 @@ interface DeleteButtonProps {
   id: number;
   onDelete: (id: number) => Promise<boolean>;
   title: string;
+  onSuccess?: () => void;
 }
 
-export function DeleteButton({ id, onDelete, title }: DeleteButtonProps) {
+export function DeleteButton({ id, onDelete, title, onSuccess }: DeleteButtonProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const router = useRouter();
 
   async function handleConfirm() {
     setLoading(true);
     const success = await onDelete(id);
     if (success) {
       toast({ title: "Supprimé", description: "L'élément a été supprimé." });
-      router.refresh();
+      if (onSuccess) onSuccess();
     } else {
       toast({
         title: "Erreur",
