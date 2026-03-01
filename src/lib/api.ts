@@ -9,12 +9,8 @@ export async function fetchProducts(): Promise<Product[]> {
     if (!res.ok) return [];
     return await res.json();
   } catch (e) {
-    // Return mock data for development if API is unreachable
-    return [
-      { id: 1, design: 'Laptop Pro', stock: 15 },
-      { id: 2, design: 'Smartphone Elite', stock: 42 },
-      { id: 3, design: 'Monitor 4K', stock: 8 },
-    ];
+    console.error("Erreur fetchProducts:", e);
+    return [];
   }
 }
 
@@ -60,10 +56,8 @@ export async function fetchClients(): Promise<Client[]> {
     if (!res.ok) return [];
     return await res.json();
   } catch (e) {
-    return [
-      { id: 1, nom: 'Jean Dupont' },
-      { id: 2, nom: 'Marie Curie' },
-    ];
+    console.error("Erreur fetchClients:", e);
+    return [];
   }
 }
 
@@ -109,6 +103,7 @@ export async function fetchSales(): Promise<Sale[]> {
     if (!res.ok) return [];
     return await res.json();
   } catch (e) {
+    console.error("Erreur fetchSales:", e);
     return [];
   }
 }
@@ -123,19 +118,6 @@ export async function createSale(data: Omit<Sale, 'id'>): Promise<Sale | null> {
     return res.ok ? await res.json() : null;
   } catch (e) {
     return null;
-  }
-}
-
-export async function updateSale(id: number, data: Partial<Sale>): Promise<boolean> {
-  try {
-    const res = await fetch(`${BASE_URL}/ventes/${id}/`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    return res.ok;
-  } catch (e) {
-    return false;
   }
 }
 

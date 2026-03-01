@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2 } from "lucide-react";
+import { Loader2, Package } from "lucide-react";
 import { ProductDialog } from "@/components/products/product-dialog";
 import { DeleteButton } from "@/components/common/delete-button";
 
@@ -48,9 +48,14 @@ export default function ProductsPage() {
           </div>
 
           <Card>
-            <CardHeader>
-              <CardTitle>Inventaire</CardTitle>
-              <CardDescription>Liste exhaustive des produits disponibles dans le système.</CardDescription>
+            <CardHeader className="flex flex-row items-center gap-4">
+              <div className="bg-primary/10 p-2 rounded-full">
+                <Package className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <CardTitle>Inventaire</CardTitle>
+                <CardDescription>Gestion complète des produits (Modèle Django).</CardDescription>
+              </div>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -64,24 +69,18 @@ export default function ProductsPage() {
                       <TableHead className="w-[100px]">ID</TableHead>
                       <TableHead>Désignation</TableHead>
                       <TableHead className="text-right">Stock</TableHead>
-                      <TableHead className="text-right">Statut</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {products.map((product) => (
-                      <TableRow key={product.id} className="group transition-colors">
-                        <TableCell className="font-mono text-xs text-muted-foreground">#{product.id}</TableCell>
-                        <TableCell className="font-medium text-foreground">{product.design}</TableCell>
-                        <TableCell className="text-right font-bold">{product.stock}</TableCell>
+                      <TableRow key={product.id}>
+                        <TableCell className="font-mono text-xs">#{product.id}</TableCell>
+                        <TableCell className="font-medium">{product.design}</TableCell>
                         <TableCell className="text-right">
-                          {product.stock > 20 ? (
-                            <Badge variant="secondary" className="bg-accent/10 text-accent border-none">Optimal</Badge>
-                          ) : product.stock > 5 ? (
-                            <Badge variant="outline" className="border-primary/20 text-primary">Modéré</Badge>
-                          ) : (
-                            <Badge variant="destructive">Critique</Badge>
-                          )}
+                          <Badge variant={product.stock > 10 ? "secondary" : "destructive"}>
+                            {product.stock}
+                          </Badge>
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
@@ -93,7 +92,7 @@ export default function ProductsPage() {
                     ))}
                     {products.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={5} className="h-24 text-center">
+                        <TableCell colSpan={4} className="h-24 text-center">
                           Aucun produit trouvé.
                         </TableCell>
                       </TableRow>

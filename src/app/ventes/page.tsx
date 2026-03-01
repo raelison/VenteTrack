@@ -26,14 +26,18 @@ export default function SalesPage() {
 
   const loadData = async () => {
     setLoading(true);
-    const [p, c, s] = await Promise.all([
-      fetchProducts(),
-      fetchClients(),
-      fetchSales(),
-    ]);
-    setProducts(p);
-    setClients(c);
-    setSales(s);
+    try {
+      const [p, c, s] = await Promise.all([
+        fetchProducts(),
+        fetchClients(),
+        fetchSales(),
+      ]);
+      setProducts(p);
+      setClients(c);
+      setSales(s);
+    } catch (e) {
+      console.error(e);
+    }
     setLoading(false);
   };
 
@@ -57,7 +61,6 @@ export default function SalesPage() {
               <h1 className="text-3xl font-bold text-primary font-headline">Gestion des Ventes</h1>
               <p className="text-muted-foreground">Enregistrez de nouvelles ventes et consultez l'historique.</p>
             </div>
-            <ShoppingCart className="h-8 w-8 text-primary/20" />
           </div>
 
           {loading ? (
@@ -76,7 +79,7 @@ export default function SalesPage() {
                     <History className="h-5 w-5 text-primary" />
                     <div>
                       <CardTitle>Historique des Transactions</CardTitle>
-                      <CardDescription>Liste chronologique des ventes effectuées.</CardDescription>
+                      <CardDescription>Toutes les ventes (qtesortie, client, produit).</CardDescription>
                     </div>
                   </CardHeader>
                   <CardContent>
