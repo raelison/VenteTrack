@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { SaleForm } from "@/components/sales/sale-form";
+import { SaleDialog } from "@/components/sales/sale-dialog";
 import { ShoppingCart, History, Loader2 } from "lucide-react";
 import { DeleteButton } from "@/components/common/delete-button";
 
@@ -89,7 +90,7 @@ export default function SalesPage() {
                           <TableHead>Client</TableHead>
                           <TableHead>Produit</TableHead>
                           <TableHead className="text-right">Quantité</TableHead>
-                          <TableHead className="text-right">Action</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -99,12 +100,20 @@ export default function SalesPage() {
                             <TableCell>{sale.product_design}</TableCell>
                             <TableCell className="text-right font-bold text-accent">{sale.qtesortie}</TableCell>
                             <TableCell className="text-right">
-                              <DeleteButton 
-                                id={sale.id} 
-                                onDelete={deleteSale} 
-                                title={`la vente #${sale.id}`} 
-                                onSuccess={loadData}
-                              />
+                              <div className="flex justify-end gap-2">
+                                <SaleDialog 
+                                  sale={sale} 
+                                  products={products} 
+                                  clients={clients} 
+                                  onSuccess={loadData} 
+                                />
+                                <DeleteButton 
+                                  id={sale.id} 
+                                  onDelete={deleteSale} 
+                                  title={`la vente #${sale.id}`} 
+                                  onSuccess={loadData}
+                                />
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))}

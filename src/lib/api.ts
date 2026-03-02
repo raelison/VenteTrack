@@ -121,6 +121,19 @@ export async function createSale(data: Omit<Sale, 'id'>): Promise<Sale | null> {
   }
 }
 
+export async function updateSale(id: number, data: Partial<Sale>): Promise<boolean> {
+  try {
+    const res = await fetch(`${BASE_URL}/ventes/${id}/`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return res.ok;
+  } catch (e) {
+    return false;
+  }
+}
+
 export async function deleteSale(id: number): Promise<boolean> {
   try {
     const res = await fetch(`${BASE_URL}/ventes/${id}/`, { method: 'DELETE' });
