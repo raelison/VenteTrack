@@ -1,6 +1,8 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { fetchClients, deleteClient } from "@/lib/api";
 import { Client } from "@/lib/types";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
@@ -21,17 +23,36 @@ import { DeleteButton } from "@/components/common/delete-button";
 export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   const loadClients = async () => {
     setLoading(true);
-    const data = await fetchClients();
-    setClients(data);
-    setLoading(false);
+    try {
+      const data = await fetchClients();
+      setClients(data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
     loadClients();
-  }, []);
+  }, [router]);
+
+  if (loading && clients.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider>
@@ -52,42 +73,36 @@ export default function ClientsPage() {
               <CardDescription>Liste de tous les clients ayant un compte actif.</CardDescription>
             </CardHeader>
             <CardContent>
-              {loading ? (
-                <div className="flex justify-center p-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[100px]">ID</TableHead>
-                      <TableHead>Nom complet</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[100px]">ID</TableHead>
+                    <TableHead>Nom complet</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {clients.map((client) => (
+                    <TableRow key={client.id} className="hover:bg-accent/5">
+                      <TableCell className="font-mono text-xs text-muted-foreground">#{client.id}</TableCell>
+                      <TableCell className="font-semibold">{client.nom}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <ClientDialog client={client} onSuccess={loadClients} />
+                          <DeleteButton id={client.id} onDelete={deleteClient} title={client.nom} onSuccess={loadClients} />
+                        </div>
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {clients.map((client) => (
-                      <TableRow key={client.id} className="hover:bg-accent/5">
-                        <TableCell className="font-mono text-xs text-muted-foreground">#{client.id}</TableCell>
-                        <TableCell className="font-semibold">{client.nom}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <ClientDialog client={client} onSuccess={loadClients} />
-                            <DeleteButton id={client.id} onDelete={deleteClient} title={client.nom} onSuccess={loadClients} />
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {clients.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={3} className="h-24 text-center">
-                          Aucun client enregistré.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              )}
+                  ))}
+                  {clients.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={3} className="h-24 text-center">
+                        Aucun client enregistré.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </div>

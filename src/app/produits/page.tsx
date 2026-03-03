@@ -1,6 +1,8 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { fetchProducts, deleteProduct } from "@/lib/api";
 import { Product } from "@/lib/types";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
@@ -22,17 +24,36 @@ import { DeleteButton } from "@/components/common/delete-button";
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   const loadProducts = async () => {
     setLoading(true);
-    const data = await fetchProducts();
-    setProducts(data);
-    setLoading(false);
+    try {
+      const data = await fetchProducts();
+      setProducts(data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
     loadProducts();
-  }, []);
+  }, [router]);
+
+  if (loading && products.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider>
@@ -58,48 +79,42 @@ export default function ProductsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              {loading ? (
-                <div className="flex justify-center p-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[100px]">ID</TableHead>
-                      <TableHead>Désignation</TableHead>
-                      <TableHead className="text-right">Stock</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[100px]">ID</TableHead>
+                    <TableHead>Désignation</TableHead>
+                    <TableHead className="text-right">Stock</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {products.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell className="font-mono text-xs">#{product.id}</TableCell>
+                      <TableCell className="font-medium">{product.design}</TableCell>
+                      <TableCell className="text-right">
+                        <Badge variant={product.stock > 10 ? "secondary" : "destructive"}>
+                          {product.stock}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <ProductDialog product={product} onSuccess={loadProducts} />
+                          <DeleteButton id={product.id} onDelete={deleteProduct} title={product.design} onSuccess={loadProducts} />
+                        </div>
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {products.map((product) => (
-                      <TableRow key={product.id}>
-                        <TableCell className="font-mono text-xs">#{product.id}</TableCell>
-                        <TableCell className="font-medium">{product.design}</TableCell>
-                        <TableCell className="text-right">
-                          <Badge variant={product.stock > 10 ? "secondary" : "destructive"}>
-                            {product.stock}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <ProductDialog product={product} onSuccess={loadProducts} />
-                            <DeleteButton id={product.id} onDelete={deleteProduct} title={product.design} onSuccess={loadProducts} />
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {products.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={4} className="h-24 text-center">
-                          Aucun produit trouvé.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              )}
+                  ))}
+                  {products.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={4} className="h-24 text-center">
+                        Aucun produit trouvé.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </div>

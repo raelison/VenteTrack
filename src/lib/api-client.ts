@@ -15,4 +15,18 @@ API.interceptors.request.use((config) => {
     return config;
 });
 
+// Intercepteur pour gérer les erreurs d'authentification (ex: token expiré)
+API.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default API;

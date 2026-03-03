@@ -1,6 +1,8 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { fetchProducts, fetchClients, fetchSales, deleteSale } from "@/lib/api";
 import { Product, Client, Sale, SaleDetail } from "@/lib/types";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
@@ -24,6 +26,7 @@ export default function SalesPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   const loadData = async () => {
     setLoading(true);
@@ -38,13 +41,27 @@ export default function SalesPage() {
       setSales(s);
     } catch (e) {
       console.error(e);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
     loadData();
-  }, []);
+  }, [router]);
+
+  if (loading && sales.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const enrichedSales: SaleDetail[] = sales.map(sale => ({
     ...sale,
@@ -64,73 +81,67 @@ export default function SalesPage() {
             </div>
           </div>
 
-          {loading ? (
-            <div className="flex justify-center p-12">
-              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <div className="grid gap-8 lg:grid-cols-3">
+            <div className="lg:col-span-1">
+              <SaleForm products={products} clients={clients} onSuccess={loadData} />
             </div>
-          ) : (
-            <div className="grid gap-8 lg:grid-cols-3">
-              <div className="lg:col-span-1">
-                <SaleForm products={products} clients={clients} onSuccess={loadData} />
-              </div>
 
-              <div className="lg:col-span-2">
-                <Card>
-                  <CardHeader className="flex flex-row items-center gap-2">
-                    <History className="h-5 w-5 text-primary" />
-                    <div>
-                      <CardTitle>Historique des Transactions</CardTitle>
-                      <CardDescription>Toutes les ventes (qtesortie, client, produit).</CardDescription>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Client</TableHead>
-                          <TableHead>Produit</TableHead>
-                          <TableHead className="text-right">Quantité</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
+            <div className="lg:col-span-2">
+              <Card>
+                <CardHeader className="flex flex-row items-center gap-2">
+                  <History className="h-5 w-5 text-primary" />
+                  <div>
+                    <CardTitle>Historique des Transactions</CardTitle>
+                    <CardDescription>Toutes les ventes (qtesortie, client, produit).</CardDescription>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Client</TableHead>
+                        <TableHead>Produit</TableHead>
+                        <TableHead className="text-right">Quantité</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {enrichedSales.slice().reverse().map((sale) => (
+                        <TableRow key={sale.id}>
+                          <TableCell className="font-medium">{sale.client_name}</TableCell>
+                          <TableCell>{sale.product_design}</TableCell>
+                          <TableCell className="text-right font-bold text-accent">{sale.qtesortie}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <SaleDialog 
+                                sale={sale} 
+                                products={products} 
+                                clients={clients} 
+                                onSuccess={loadData} 
+                              />
+                              <DeleteButton 
+                                id={sale.id} 
+                                onDelete={deleteSale} 
+                                title={`la vente #${sale.id}`} 
+                                onSuccess={loadData}
+                              />
+                            </div>
+                          </TableCell>
                         </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {enrichedSales.slice().reverse().map((sale) => (
-                          <TableRow key={sale.id}>
-                            <TableCell className="font-medium">{sale.client_name}</TableCell>
-                            <TableCell>{sale.product_design}</TableCell>
-                            <TableCell className="text-right font-bold text-accent">{sale.qtesortie}</TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex justify-end gap-2">
-                                <SaleDialog 
-                                  sale={sale} 
-                                  products={products} 
-                                  clients={clients} 
-                                  onSuccess={loadData} 
-                                />
-                                <DeleteButton 
-                                  id={sale.id} 
-                                  onDelete={deleteSale} 
-                                  title={`la vente #${sale.id}`} 
-                                  onSuccess={loadData}
-                                />
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                        {enrichedSales.length === 0 && (
-                          <TableRow>
-                            <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
-                              Aucune vente enregistrée.
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              </div>
+                      ))}
+                      {enrichedSales.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                            Aucune vente enregistrée.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
             </div>
-          )}
+          </div>
         </div>
       </SidebarInset>
     </SidebarProvider>
